@@ -224,5 +224,3 @@ Copie o trecho abaixo e importe em `File → Import → Raw Data`.
 | `createdAt` | TIMESTAMP       | preenchido automaticamente |
 
 ---
-
-Pronto! Agora você possui toda a documentação para configurar, executar e testar a API de produtos com Insomnia e MySQL. :rocket:
