@@ -1,0 +1,39 @@
+# Parte 2: Docker Compose
+
+version: "3.8"
+services:
+  db:
+    image: mysql:8 # 2.1 Obtém a imagem do MySQL 8 do Docker Hub.
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 3724
+      MYSQL_DATABASE: cloud_test
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - backend # 2.3 Conecta o container ao network backend.
+
+  app:
+    build: . # 2.2 Cria a imagem do app localmente.
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: 3724
+      DB_NAME: cloud_test
+      DB_TABLE: product
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - backend # 2.3 Conecta o container ao network backend.
+
+volumes:
+  db_data: # 3B Persistência dos dados do banco de dados.
+
+networks:
+  backend: # 2.3 Cria o network backend, contendo os containers db e app.
