@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import pool from "./db";
 
 const router = Router();
 
@@ -7,77 +8,67 @@ interface Product {
     name: string;
     price: number;
     description?: string;
+    createdAt: Date;
 }
 
-const products: Product[] = [];
-let currentId = 1;
-
 // Get all products
-router.get('/products', (_req: Request, res: Response) => {
-    res.json(products);
+router.get('/products', async (_req: Request, res: Response) => {
+    const [rows] = await pool.query('SELECT * FROM product');
+    res.json(rows);
 });
 
 // Get a product by ID
-router.get('/products/:id', (req: Request, res: Response) => {
+router.get('/products/:id', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const product = products.find(p => p.id === id);
-
-    if (!product) {
+    const [rows]: any = await pool.query('SELECT * FROM product WHERE id = ?', [id]);
+    if (rows.length === 0) {
         return res.status(404).json({ message: 'Product not found' });
     }
-
-    res.json(product);
+    res.json(rows[0]);
 });
 
 // Create a new product
-router.post('/products', (req: Request, res: Response) => {
+router.post('/products', async (req: Request, res: Response) => {
     const { name, price, description } = req.body;
 
     if (!name || price === undefined) {
         return res.status(400).json({ message: 'Name and price are required' });
     }
 
-    const product: Product = {
-        id: currentId++,
-        name,
-        price: Number(price),
-        description,
-    };
+    const [result]: any = await pool.execute(
+        'INSERT INTO product (name, description, price, createdAt) VALUES (?, ?, ?, NOW())',
+        [name, description, Number(price)]
+    );
 
-    products.push(product);
-
-    res.status(201).json(product);
+    const insertId = (result as any).insertId;
+    const [rows]: any = await pool.query('SELECT * FROM product WHERE id = ?', [insertId]);
+    res.status(201).json(rows[0]);
 });
 
 // Update a product by ID
-router.put('/products/:id', (req: Request, res: Response) => {
+router.put('/products/:id', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const index = products.findIndex(p => p.id === id);
-
-    if (index === -1) {
-        return res.status(404).json({ message: 'Product not found' });
-    }
-
     const { name, price, description } = req.body;
 
-    if (name !== undefined) products[index].name = name;
-    if (price !== undefined) products[index].price = Number(price);
-    if (description !== undefined) products[index].description = description;
+    await pool.execute(
+        'UPDATE product SET name = COALESCE(?, name), description = COALESCE(?, description), price = COALESCE(?, price) WHERE id = ?',
+        [name ?? null, description ?? null, price ?? null, id]
+    );
 
-    res.json(products[index]);
+    const [rows]: any = await pool.query('SELECT * FROM product WHERE id = ?', [id]);
+    if (rows.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(rows[0]);
 });
 
 // Delete a product by ID
-router.delete('/products/:id', (req: Request, res: Response) => {
+router.delete('/products/:id', async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const index = products.findIndex(p => p.id === id);
-
-    if (index === -1) {
+    const [result]: any = await pool.execute('DELETE FROM product WHERE id = ?', [id]);
+    if ((result as any).affectedRows === 0) {
         return res.status(404).json({ message: 'Product not found' });
     }
-
-    products.splice(index, 1);
-
     res.status(204).send();
 });
 

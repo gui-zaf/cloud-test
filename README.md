@@ -22,7 +22,7 @@ REST API em Node.js + Express para gerenciar produtos.
 ## 2. Configuração do projeto
 ```bash
 # clonar o repositório
-$ git clone <repo-url>
+$ git clone <https://github.com/gui-zaf/cloud-test>
 $ cd cloud-test
 
 # instalar dependências
@@ -45,7 +45,7 @@ CREATE TABLE product (
 );
 ```
 
-> A aplicação se conecta usando o usuário **root** com senha **3724** e host `localhost:3306`. Ajuste conforme sua realidade.
+> A aplicação se conecta usando o host `localhost:3306`. Ajuste conforme sua realidade.
 
 ## 4. Variáveis de ambiente
 Crie um arquivo `.env` na raiz com o seguinte conteúdo:
@@ -53,8 +53,8 @@ Crie um arquivo `.env` na raiz com o seguinte conteúdo:
 ```dotenv
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=3724
+DB_USER=
+DB_PASSWORD=
 DB_NAME=cloud_test
 ```
 
